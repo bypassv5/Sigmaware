@@ -394,42 +394,85 @@ local EggTPButton = TPTab:CreateButton({
 local RedBoxButton = MainTab:CreateButton({
     Name = "ESP",
     Callback = function()
-        -- Get the Players service
-        local Players = game:GetService("Players")
-        local Workspace = game:GetService("Workspace")
-        
-        -- Loop through all players in the game
-        for _, player in pairs(Players:GetPlayers()) do
-            -- Check if the player has a character and a HumanoidRootPart
-            if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                -- Create a red box (part) above the player's character
-                local redBox = Instance.new("Part")
-                redBox.Size = Vector3.new(3, 6, 3)  -- Size of the box
-                redBox.Anchored = true
-                redBox.CanCollide = false
-                redBox.BrickColor = BrickColor.new("Bright red")  -- Set the color of the box
-                redBox.Transparency = 0.5  -- Set transparency (0 for opaque, 1 for fully transparent)
-                redBox.Parent = workspace  -- Parent the box to the workspace
+      -- Parent this script to StarterPlayerScripts or StarterGui for client-side execution.
 
-                -- Position the box 5 units above the player's character
-                local humanoidRootPart = player.Character.HumanoidRootPart
-                redBox.Position = humanoidRootPart.Position + Vector3.new(0, -1, 0)
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
 
-                -- Update the position of the red box continuously
-                local function updateBoxPosition()
-                    -- Make sure the player still exists and has a valid HumanoidRootPart
-                    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                        local newPosition = player.Character.HumanoidRootPart.Position + Vector3.new(0, 5, 0)
-                        redBox.Position = newPosition
-                    else
-                        -- If the player or HumanoidRootPart is missing, stop updating the box position
-                        redBox:Destroy()  -- Remove the box if the player is no longer valid
-                    end
-                end
+-- Function to create a red UI box
+local function createHighlightBox(character)
+    if not character then return end
 
-                -- Connect the update function to the Heartbeat event to update the position every frame
-                game:GetService("RunService").Heartbeat:Connect(updateBoxPosition)
-            end
+    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRootPart then return end
+
+    -- Check if the highlight already exists
+    if character:FindFirstChild("HighlightGui") then return end
+
+    -- Create a BillboardGui
+    local highlightGui = Instance.new("BillboardGui")
+    highlightGui.Name = "HighlightGui"
+    highlightGui.Adornee = humanoidRootPart
+    highlightGui.Size = UDim2.new(4, 0, 6, 0) -- Adjust size as needed
+    highlightGui.AlwaysOnTop = true
+
+    -- Create the red UI box
+    local box = Instance.new("Frame")
+    box.Size = UDim2.new(1, 0, 1, 0)
+    box.BackgroundTransparency = 1
+    box.BorderSizePixel = 0
+
+    -- Add a red outline
+    local outline = Instance.new("UIStroke")
+    outline.Thickness = 3
+    outline.Color = Color3.new(1, 0, 0) -- Red color
+    outline.Parent = box
+
+    box.Parent = highlightGui
+    highlightGui.Parent = character
+end
+
+-- Function to handle a player's character
+local function handleCharacter(player, character)
+    if player == LocalPlayer then return end -- Avoid highlighting the local player
+
+    -- Add a delay to ensure the character is fully loaded
+    character:WaitForChild("HumanoidRootPart", 5) -- Wait up to 5 seconds for the HumanoidRootPart
+    createHighlightBox(character)
+end
+
+-- Function to handle players joining
+local function handlePlayer(player)
+    -- Listen for the player's character spawning or respawning
+    player.CharacterAdded:Connect(function(character)
+        handleCharacter(player, character)
+    end)
+
+    -- Check if the player's character already exists
+    if player.Character then
+        handleCharacter(player, player.Character)
+    end
+end
+
+-- Set up for existing players
+for _, player in ipairs(Players:GetPlayers()) do
+    handlePlayer(player)
+end
+
+-- Handle new players joining
+Players.PlayerAdded:Connect(handlePlayer)
+
+-- Cleanup when players leave
+Players.PlayerRemoving:Connect(function(player)
+    if player.Character then
+        local highlightGui = player.Character:FindFirstChild("HighlightGui")
+        if highlightGui then
+            highlightGui:Destroy()
+        end
+    end
+end)
+
         end
     end,
 })
