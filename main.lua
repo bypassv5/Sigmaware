@@ -231,28 +231,26 @@ local InfJumpButton = MainTab:CreateButton({
    Name = "Infinite Jump",
    Callback = function()
       local UserInputService = game:GetService("UserInputService")
-local speaker = game.Players.LocalPlayer
-local infJump
-local infJumpDebounce = false
-
--- Disconnect any existing connections
-if infJump then
-    infJump:Disconnect()
-end
-
--- Create a new JumpRequest connection
-infJump = UserInputService.JumpRequest:Connect(function()
-    if not infJumpDebounce then
-        infJumpDebounce = true
-        local humanoid = speaker.Character and speaker.Character:FindFirstChildWhichIsA("Humanoid")
-        if humanoid then
-            humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-        end
-        wait()
-        infJumpDebounce = false
-    end
-end)
-
+         local speaker = game.Players.LocalPlayer
+         local infJump
+         local infJumpDebounce = false
+         
+         -- Disconnect any existing connections
+         if infJump then
+             infJump:Disconnect()
+         end
+         
+         -- Create a new JumpRequest connection
+         infJump = UserInputService.JumpRequest:Connect(function()
+             if not infJumpDebounce then
+                 infJumpDebounce = true
+                 local humanoid = speaker.Character and speaker.Character:FindFirstChildWhichIsA("Humanoid")
+                 if humanoid then
+                     humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+                 end
+                 wait()
+                 infJumpDebounce = false
+             end
         end)
    end,
 })
