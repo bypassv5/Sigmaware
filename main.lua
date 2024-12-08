@@ -257,20 +257,31 @@ local WalkSpeedSlider = MainTab:CreateSlider({
     Increment = 1,
     Suffix = "Speed",
     CurrentValue = 50,
-    Flag = "Slider1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+    Flag = "Slider1", -- Unique flag for the slider
     Callback = function(Value)
         local player = game.Players.LocalPlayer
         local character = player.Character
-        while true do
-            if character and character:FindFirstChild("Humanoid") then
-                local humanoid = character:FindFirstChild("Humanoid")
-                humanoid.WalkSpeed = Value
-            end
+        if character and character:FindFirstChild("Humanoid") then
+            local humanoid = character:FindFirstChild("Humanoid")
+            humanoid.WalkSpeed = Value
         end
+
+        -- Start a coroutine to constantly enforce the selected walk speed
+        coroutine.wrap(function()
+            while true do
+                local character = player.Character or player.CharacterAdded:Wait()
+                local humanoid = character:FindFirstChild("Humanoid")
+                if humanoid then
+                    humanoid.WalkSpeed = Value
+                end
+                wait(0.1) -- Adjust this interval as needed for performance and responsiveness
+            end
+        end)()
     end,
 })
 
-local EggTPButton = MainTab:CreateButton({
+
+local EggTPButton = TPTab:CreateButton({
    Name = "EggTP (Beta)",
    Callback = function()
        -- LocalScript for teleporting the player to a random Bed part with glide effect over 5 seconds
@@ -431,14 +442,26 @@ local FOVSlider = MainTab:CreateSlider({
    Increment = 1,
    Suffix = "FOV",
    CurrentValue = 50,
-   Flag = "Slider1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+   Flag = "Slider2", -- Unique flag for the slider
    Callback = function(Value)
-        while true do
-            Workspace.Camera.FieldOfView = (Value)
-            wait(0)
+        local camera = workspace.CurrentCamera
+        if camera then
+            camera.FieldOfView = Value
         end
+
+        -- Start a coroutine to constantly enforce the selected FOV
+        coroutine.wrap(function()
+            while true do
+                local camera = workspace.CurrentCamera
+                if camera then
+                    camera.FieldOfView = Value
+                end
+                wait(0.1) -- Adjust this interval for performance and responsiveness
+            end
+        end)()
    end,
 })
+
 
 
 local SetHitboxSizeButton = MainTab:CreateButton({
