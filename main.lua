@@ -315,7 +315,7 @@ local EggTPButton = MainTab:CreateButton({
            end
 
            -- Move the player to 5 units below the bed initially
-           targetPosition = Vector3.new(targetPosition.X, targetPosition.Y - 0.5, targetPosition.Z)
+           targetPosition = Vector3.new(targetPosition.X, targetPosition.Y + 2, targetPosition.Z)
 
            -- Wait for the player's character to load
            local character = player.Character or player.CharacterAdded:Wait()
