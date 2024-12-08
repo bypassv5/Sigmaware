@@ -485,23 +485,27 @@ local FOVSlider = MainTab:CreateSlider({
    CurrentValue = 50,
    Flag = "Slider2", -- Unique flag for the slider
    Callback = function(Value)
-        local camera = workspace.CurrentCamera
-        if camera then
-            camera.FieldOfView = Value
-        end
+       local camera = workspace.CurrentCamera
+       if camera then
+           camera.FieldOfView = Value
+       end
 
-        -- Start a coroutine to constantly enforce the selected FOV
-        coroutine.wrap(function()
-            while true do
-                local camera = workspace.CurrentCamera
-                if camera then
-                    camera.FieldOfView = Value
-                end
-                wait(0.1) -- Adjust this interval for performance and responsiveness
-            end
-        end)()
+       -- Function to enforce the FOV if it changes
+       local function enforceFOV()
+           local camera = workspace.CurrentCamera
+           while true do
+               if camera and camera.FieldOfView ~= Value then
+                   camera.FieldOfView = Value
+               end
+               wait(0.2) -- Periodic check to avoid excessive updates
+           end
+       end
+
+       -- Start the enforcement in a coroutine
+       coroutine.wrap(enforceFOV)()
    end,
 })
+
 
 
 
