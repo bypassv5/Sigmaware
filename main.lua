@@ -394,7 +394,7 @@ local EggTPButton = TPTab:CreateButton({
 local RedBoxButton = MainTab:CreateButton({
     Name = "ESP",
     Callback = function()
-      -- Parent this script to StarterPlayerScripts or StarterGui for client-side execution.
+            -- Parent this script to StarterPlayerScripts or StarterGui for client-side execution.
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
