@@ -230,29 +230,24 @@ teleportToCoins()
 local InfJumpButton = MainTab:CreateButton({
    Name = "Infinite Jump",
    Callback = function()
-       local UserInputService = game:GetService("UserInputService")
-local speaker = game.Players.LocalPlayer
-local infJump
-local infJumpDebounce = false
-
--- Disconnect any existing connections
-if infJump then
-    infJump:Disconnect()
-end
-
--- Create a new JumpRequest connection
-infJump = UserInputService.JumpRequest:Connect(function()
-    if not infJumpDebounce then
-        infJumpDebounce = true
-        local humanoid = speaker.Character and speaker.Character:FindFirstChildWhichIsA("Humanoid")
-        if humanoid then
-            humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-        end
-        wait()
-        infJumpDebounce = false
-    end
-end)
-
+       local Player = game:GetService'Players'.LocalPlayer;
+       local UIS = game:GetService'UserInputService';
+ 
+        _G.JumpHeight = 50;
+ 
+        function Action(Object, Function) if Object ~= nil then Function(Object); end end
+ 
+        UIS.InputBegan:connect(function(UserInput)
+            if UserInput.UserInputType == Enum.UserInputType.Keyboard and UserInput.KeyCode == Enum.KeyCode.Space then
+                Action(Player.Character.Humanoid, function(self)
+                    if self:GetState() == Enum.HumanoidStateType.Jumping or self:GetState() == Enum.HumanoidStateType.Freefall then
+                        Action(self.Parent.HumanoidRootPart, function(self)
+                            self.Velocity = Vector3.new(0, _G.JumpHeight, 0);
+                        end)
+                    end
+                end)
+            end
+        end)
    end,
 })
 
@@ -262,20 +257,31 @@ local WalkSpeedSlider = MainTab:CreateSlider({
     Increment = 1,
     Suffix = "Speed",
     CurrentValue = 50,
-    Flag = "Slider1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+    Flag = "Slider1", -- Unique flag for the slider
     Callback = function(Value)
         local player = game.Players.LocalPlayer
         local character = player.Character
-        while true do
-            if character and character:FindFirstChild("Humanoid") then
-                local humanoid = character:FindFirstChild("Humanoid")
-                humanoid.WalkSpeed = Value
-            end
+        if character and character:FindFirstChild("Humanoid") then
+            local humanoid = character:FindFirstChild("Humanoid")
+            humanoid.WalkSpeed = Value
         end
+
+        -- Start a coroutine to constantly enforce the selected walk speed
+        coroutine.wrap(function()
+            while true do
+                local character = player.Character or player.CharacterAdded:Wait()
+                local humanoid = character:FindFirstChild("Humanoid")
+                if humanoid then
+                    humanoid.WalkSpeed = Value
+                end
+                wait(0.1) -- Adjust this interval as needed for performance and responsiveness
+            end
+        end)()
     end,
 })
 
-local EggTPButton = MainTab:CreateButton({
+
+local EggTPButton = TPTab:CreateButton({
    Name = "EggTP (Beta)",
    Callback = function()
        -- LocalScript for teleporting the player to a random Bed part with glide effect over 5 seconds
@@ -388,42 +394,85 @@ local EggTPButton = MainTab:CreateButton({
 local RedBoxButton = MainTab:CreateButton({
     Name = "ESP",
     Callback = function()
-        -- Get the Players service
-        local Players = game:GetService("Players")
-        local Workspace = game:GetService("Workspace")
-        
-        -- Loop through all players in the game
-        for _, player in pairs(Players:GetPlayers()) do
-            -- Check if the player has a character and a HumanoidRootPart
-            if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                -- Create a red box (part) above the player's character
-                local redBox = Instance.new("Part")
-                redBox.Size = Vector3.new(3, 6, 3)  -- Size of the box
-                redBox.Anchored = true
-                redBox.CanCollide = false
-                redBox.BrickColor = BrickColor.new("Bright red")  -- Set the color of the box
-                redBox.Transparency = 0.5  -- Set transparency (0 for opaque, 1 for fully transparent)
-                redBox.Parent = workspace  -- Parent the box to the workspace
+            -- Parent this script to StarterPlayerScripts or StarterGui for client-side execution.
 
-                -- Position the box 5 units above the player's character
-                local humanoidRootPart = player.Character.HumanoidRootPart
-                redBox.Position = humanoidRootPart.Position + Vector3.new(0, -1, 0)
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
 
-                -- Update the position of the red box continuously
-                local function updateBoxPosition()
-                    -- Make sure the player still exists and has a valid HumanoidRootPart
-                    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                        local newPosition = player.Character.HumanoidRootPart.Position + Vector3.new(0, 5, 0)
-                        redBox.Position = newPosition
-                    else
-                        -- If the player or HumanoidRootPart is missing, stop updating the box position
-                        redBox:Destroy()  -- Remove the box if the player is no longer valid
-                    end
-                end
+-- Function to create a red UI box
+local function createHighlightBox(character)
+    if not character then return end
 
-                -- Connect the update function to the Heartbeat event to update the position every frame
-                game:GetService("RunService").Heartbeat:Connect(updateBoxPosition)
-            end
+    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRootPart then return end
+
+    -- Check if the highlight already exists
+    if character:FindFirstChild("HighlightGui") then return end
+
+    -- Create a BillboardGui
+    local highlightGui = Instance.new("BillboardGui")
+    highlightGui.Name = "HighlightGui"
+    highlightGui.Adornee = humanoidRootPart
+    highlightGui.Size = UDim2.new(4, 0, 6, 0) -- Adjust size as needed
+    highlightGui.AlwaysOnTop = true
+
+    -- Create the red UI box
+    local box = Instance.new("Frame")
+    box.Size = UDim2.new(1, 0, 1, 0)
+    box.BackgroundTransparency = 1
+    box.BorderSizePixel = 0
+
+    -- Add a red outline
+    local outline = Instance.new("UIStroke")
+    outline.Thickness = 3
+    outline.Color = Color3.new(1, 0, 0) -- Red color
+    outline.Parent = box
+
+    box.Parent = highlightGui
+    highlightGui.Parent = character
+end
+
+-- Function to handle a player's character
+local function handleCharacter(player, character)
+    if player == LocalPlayer then return end -- Avoid highlighting the local player
+
+    -- Add a delay to ensure the character is fully loaded
+    character:WaitForChild("HumanoidRootPart", 5) -- Wait up to 5 seconds for the HumanoidRootPart
+    createHighlightBox(character)
+end
+
+-- Function to handle players joining
+local function handlePlayer(player)
+    -- Listen for the player's character spawning or respawning
+    player.CharacterAdded:Connect(function(character)
+        handleCharacter(player, character)
+    end)
+
+    -- Check if the player's character already exists
+    if player.Character then
+        handleCharacter(player, player.Character)
+    end
+end
+
+-- Set up for existing players
+for _, player in ipairs(Players:GetPlayers()) do
+    handlePlayer(player)
+end
+
+-- Handle new players joining
+Players.PlayerAdded:Connect(handlePlayer)
+
+-- Cleanup when players leave
+Players.PlayerRemoving:Connect(function(player)
+    if player.Character then
+        local highlightGui = player.Character:FindFirstChild("HighlightGui")
+        if highlightGui then
+            highlightGui:Destroy()
+        end
+    end
+end)
+
         end
     end,
 })
@@ -436,14 +485,26 @@ local FOVSlider = MainTab:CreateSlider({
    Increment = 1,
    Suffix = "FOV",
    CurrentValue = 50,
-   Flag = "Slider1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+   Flag = "Slider2", -- Unique flag for the slider
    Callback = function(Value)
-        while true do
-            Workspace.Camera.FieldOfView = (Value)
-            wait(0)
+        local camera = workspace.CurrentCamera
+        if camera then
+            camera.FieldOfView = Value
         end
+
+        -- Start a coroutine to constantly enforce the selected FOV
+        coroutine.wrap(function()
+            while true do
+                local camera = workspace.CurrentCamera
+                if camera then
+                    camera.FieldOfView = Value
+                end
+                wait(0.1) -- Adjust this interval for performance and responsiveness
+            end
+        end)()
    end,
 })
+
 
 
 local SetHitboxSizeButton = MainTab:CreateButton({
