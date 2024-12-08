@@ -394,86 +394,84 @@ local EggTPButton = TPTab:CreateButton({
 local RedBoxButton = MainTab:CreateButton({
     Name = "ESP",
     Callback = function()
-            -- Parent this script to StarterPlayerScripts or StarterGui for client-side execution.
-
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local LocalPlayer = Players.LocalPlayer
-
--- Function to create a red UI box
-local function createHighlightBox(character)
-    if not character then return end
-
-    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
-    if not humanoidRootPart then return end
-
-    -- Check if the highlight already exists
-    if character:FindFirstChild("HighlightGui") then return end
-
-    -- Create a BillboardGui
-    local highlightGui = Instance.new("BillboardGui")
-    highlightGui.Name = "HighlightGui"
-    highlightGui.Adornee = humanoidRootPart
-    highlightGui.Size = UDim2.new(4, 0, 6, 0) -- Adjust size as needed
-    highlightGui.AlwaysOnTop = true
-
-    -- Create the red UI box
-    local box = Instance.new("Frame")
-    box.Size = UDim2.new(1, 0, 1, 0)
-    box.BackgroundTransparency = 1
-    box.BorderSizePixel = 0
-
-    -- Add a red outline
-    local outline = Instance.new("UIStroke")
-    outline.Thickness = 3
-    outline.Color = Color3.new(1, 0, 0) -- Red color
-    outline.Parent = box
-
-    box.Parent = highlightGui
-    highlightGui.Parent = character
-end
-
--- Function to handle a player's character
-local function handleCharacter(player, character)
-    if player == LocalPlayer then return end -- Avoid highlighting the local player
-
-    -- Add a delay to ensure the character is fully loaded
-    character:WaitForChild("HumanoidRootPart", 5) -- Wait up to 5 seconds for the HumanoidRootPart
-    createHighlightBox(character)
-end
-
--- Function to handle players joining
-local function handlePlayer(player)
-    -- Listen for the player's character spawning or respawning
-    player.CharacterAdded:Connect(function(character)
-        handleCharacter(player, character)
-    end)
-
-    -- Check if the player's character already exists
-    if player.Character then
-        handleCharacter(player, player.Character)
-    end
-end
-
--- Set up for existing players
-for _, player in ipairs(Players:GetPlayers()) do
-    handlePlayer(player)
-end
-
--- Handle new players joining
-Players.PlayerAdded:Connect(handlePlayer)
-
--- Cleanup when players leave
-Players.PlayerRemoving:Connect(function(player)
-    if player.Character then
-        local highlightGui = player.Character:FindFirstChild("HighlightGui")
-        if highlightGui then
-            highlightGui:Destroy()
+        -- Parent this script to StarterPlayerScripts or StarterGui for client-side execution.
+        
+        local Players = game:GetService("Players")
+        local RunService = game:GetService("RunService")
+        local LocalPlayer = Players.LocalPlayer
+        
+        -- Function to create a red UI box
+        local function createHighlightBox(character)
+            if not character then return end
+        
+            local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+            if not humanoidRootPart then return end
+        
+            -- Check if the highlight already exists
+            if character:FindFirstChild("HighlightGui") then return end
+        
+            -- Create a BillboardGui
+            local highlightGui = Instance.new("BillboardGui")
+            highlightGui.Name = "HighlightGui"
+            highlightGui.Adornee = humanoidRootPart
+            highlightGui.Size = UDim2.new(4, 0, 6, 0) -- Adjust size as needed
+            highlightGui.AlwaysOnTop = true
+        
+            -- Create the red UI box
+            local box = Instance.new("Frame")
+            box.Size = UDim2.new(1, 0, 1, 0)
+            box.BackgroundTransparency = 1
+            box.BorderSizePixel = 0
+        
+            -- Add a red outline
+            local outline = Instance.new("UIStroke")
+            outline.Thickness = 3
+            outline.Color = Color3.new(1, 0, 0) -- Red color
+            outline.Parent = box
+        
+            box.Parent = highlightGui
+            highlightGui.Parent = character
         end
-    end
-end)
-
+        
+        -- Function to handle a player's character
+        local function handleCharacter(player, character)
+            if player == LocalPlayer then return end -- Avoid highlighting the local player
+        
+            -- Add a delay to ensure the character is fully loaded
+            character:WaitForChild("HumanoidRootPart", 5) -- Wait up to 5 seconds for the HumanoidRootPart
+            createHighlightBox(character)
         end
+        
+        -- Function to handle players joining
+        local function handlePlayer(player)
+            -- Listen for the player's character spawning or respawning
+            player.CharacterAdded:Connect(function(character)
+                handleCharacter(player, character)
+            end)
+        
+            -- Check if the player's character already exists
+            if player.Character then
+                handleCharacter(player, player.Character)
+            end
+        end
+        
+        -- Set up for existing players
+        for _, player in ipairs(Players:GetPlayers()) do
+            handlePlayer(player)
+        end
+        
+        -- Handle new players joining
+        Players.PlayerAdded:Connect(handlePlayer)
+        
+        -- Cleanup when players leave
+        Players.PlayerRemoving:Connect(function(player)
+            if player.Character then
+                local highlightGui = player.Character:FindFirstChild("HighlightGui")
+                if highlightGui then
+                    highlightGui:Destroy()
+                end
+            end
+        end)
     end,
 })
 
