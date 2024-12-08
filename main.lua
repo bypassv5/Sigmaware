@@ -261,9 +261,11 @@ local WalkSpeedSlider = MainTab:CreateSlider({
     Callback = function(Value)
         local player = game.Players.LocalPlayer
         local character = player.Character
-        if character and character:FindFirstChild("Humanoid") then
-            local humanoid = character:FindFirstChild("Humanoid")
-            humanoid.WalkSpeed = Value
+        while true do
+            if character and character:FindFirstChild("Humanoid") then
+                local humanoid = character:FindFirstChild("Humanoid")
+                humanoid.WalkSpeed = Value
+            end
         end
     end,
 })
@@ -431,7 +433,10 @@ local FOVSlider = MainTab:CreateSlider({
    CurrentValue = 50,
    Flag = "Slider1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
    Callback = function(Value)
-        Workspace.Camera.FieldOfView = (Value)
+        while true do
+            Workspace.Camera.FieldOfView = (Value)
+            wait(0)
+        end
    end,
 })
 
